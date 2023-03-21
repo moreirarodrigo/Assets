@@ -1,4 +1,4 @@
-import Node from './Node.js';
+import Node, { addNodeClass } from './Node.js';
 import { getValueType, getValueFromType } from './NodeUtils.js';
 
 class InputNode extends Node {
@@ -49,8 +49,7 @@ class InputNode extends Node {
 		super.deserialize( data );
 
 		this.nodeType = data.nodeType;
-		this.value = getValueFromType( data.valueType );
-		this.value = data.value;
+		this.value = Array.isArray( data.value ) ? getValueFromType( data.valueType, ...data.value ) : data.value;
 
 		if ( this.value && this.value.fromArray ) this.value = this.value.fromArray( data.value );
 
@@ -65,3 +64,5 @@ class InputNode extends Node {
 }
 
 export default InputNode;
+
+addNodeClass( InputNode );

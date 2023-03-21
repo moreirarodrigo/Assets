@@ -1,7 +1,9 @@
-import { Vector3 } from 'three';
-import Node from '../core/Node.js';
-import UniformNode from '../core/UniformNode.js';
+import Node, { addNodeClass } from '../core/Node.js';
 import { NodeUpdateType } from '../core/constants.js';
+import { uniform } from '../core/UniformNode.js';
+import { nodeProxy } from '../shadernode/ShaderNode.js';
+
+import { Vector3 } from 'three';
 
 class Object3DNode extends Node {
 
@@ -14,7 +16,7 @@ class Object3DNode extends Node {
 
 		this.updateType = NodeUpdateType.OBJECT;
 
-		this._uniformNode = new UniformNode( null );
+		this._uniformNode = uniform( null );
 
 	}
 
@@ -30,7 +32,7 @@ class Object3DNode extends Node {
 
 			return 'mat3';
 
-		} else if ( scope === Object3DNode.POSITION || scope === Object3DNode.VIEW_POSITION ) {
+		} else if ( scope === Object3DNode.POSITION || scope === Object3DNode.VIEW_POSITION || scope === Object3DNode.DIRECTION ) {
 
 			return 'vec3';
 
@@ -58,7 +60,15 @@ class Object3DNode extends Node {
 
 		} else if ( scope === Object3DNode.POSITION ) {
 
+			uniformNode.value = uniformNode.value || new Vector3();
+
 			uniformNode.value.setFromMatrixPosition( object.matrixWorld );
+
+		} else if ( scope === Object3DNode.DIRECTION ) {
+
+			uniformNode.value = uniformNode.value || new Vector3();
+
+			object.getWorldDirection( uniformNode.value );
 
 		} else if ( scope === Object3DNode.VIEW_POSITION ) {
 
@@ -85,7 +95,7 @@ class Object3DNode extends Node {
 
 			this._uniformNode.nodeType = 'mat3';
 
-		} else if ( scope === Object3DNode.POSITION || scope === Object3DNode.VIEW_POSITION ) {
+		} else if ( scope === Object3DNode.POSITION || scope === Object3DNode.VIEW_POSITION || scope === Object3DNode.DIRECTION ) {
 
 			this._uniformNode.nodeType = 'vec3';
 
@@ -118,5 +128,15 @@ Object3DNode.NORMAL_MATRIX = 'normalMatrix';
 Object3DNode.WORLD_MATRIX = 'worldMatrix';
 Object3DNode.POSITION = 'position';
 Object3DNode.VIEW_POSITION = 'viewPosition';
+Object3DNode.DIRECTION = 'direction';
 
 export default Object3DNode;
+
+export const objectDirection = nodeProxy( Object3DNode, Object3DNode.DIRECTION );
+export const objectViewMatrix = nodeProxy( Object3DNode, Object3DNode.VIEW_MATRIX );
+export const objectNormalMatrix = nodeProxy( Object3DNode, Object3DNode.NORMAL_MATRIX );
+export const objectWorldMatrix = nodeProxy( Object3DNode, Object3DNode.WORLD_MATRIX );
+export const objectPosition = nodeProxy( Object3DNode, Object3DNode.POSITION );
+export const objectViewPosition = nodeProxy( Object3DNode, Object3DNode.VIEW_POSITION );
+
+addNodeClass( Object3DNode );
